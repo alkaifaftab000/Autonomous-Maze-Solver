@@ -3,6 +3,8 @@ import gymnasium as gym
 import gymnasium_robotics
 import numpy as np
 from gym_robotics_custom import RoboGymObservationWrapper  # Import the wrapper class
+from agent import Agent
+from buffer import ReplayBuffer
 
 # Register robotics environments
 gymnasium_robotics.register_robotics_envs()
@@ -57,19 +59,16 @@ if __name__ == '__main__':
 
     # Agent
     agent = Agent(
-        observation_size,
-        env.action_space.shape,
-        hidden_size,
-        replay_buffer_size,
-        gamma =gamma,
-        tau = tau,
+        num_inputs=observation_size,          # Changed from observation_size
+        action_space=env.action_space,        # Changed from action_shape
+        gamma=gamma,
+        tau=tau,
         alpha=alpha,
         target_update_interval=target_update_interval,
         hidden_size=hidden_size,
         learning_rate=learning_rate,
         exploration_scaling_factor=exploration_scaling_factor
-    )
-
+    )   
     memory = ReplayBuffer(replay_buffer_size,input_size=observation_size,n_actions=env.action_space.shape[0])
     # Run for 100 steps
     for i in range(max_episode_steps):
