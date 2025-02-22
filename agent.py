@@ -16,7 +16,8 @@ def soft_update(target, source, tau):
         target_param.data.copy_(target_param.data * (1.0 - tau) + param.data * tau) 
 
 class Agent(object):
-    def __init__ (self, num_inputs,action_space, gamma, tau, alpha,target_update_interval,hidden_size, learning_rate, exploration_scaling_factor):
+    def __init__ (self, num_inputs, action_space, gamma, tau, alpha, target_update_interval, 
+                  hidden_size, learning_rate, exploration_scaling_factor):
         self.gamma = gamma
         self.tau = tau
         self.alpha = alpha
