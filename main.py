@@ -53,9 +53,7 @@ if __name__ == '__main__':
     # Reset the environment
     observation, info = env.reset()
 
-    # critic = Critic(1,1,1)
-
-    observation_size = observation.shape[0]
+    observation_size = observation.shape[0]  # This gets the correct state dimension
 
     # Agent
     agent = Agent(
@@ -69,13 +67,19 @@ if __name__ == '__main__':
         learning_rate=learning_rate,
         exploration_scaling_factor=exploration_scaling_factor
     )   
-    memory = ReplayBuffer(replay_buffer_size,input_size=observation_size,n_actions=env.action_space.shape[0])
+    memory = ReplayBuffer(
+        max_size=replay_buffer_size,
+        input_size=observation_size,  # This should match the actual observation size
+        n_actions=env.action_space.shape[0]
+    )
     # Run for 100 steps
-    for i in range(max_episode_steps):
-        action = env.action_space.sample()  # Sample a random action
-        observation, reward, terminated, truncated, info = env.step(action)
 
-    print("Final observation:", observation)
+    agent.train(env = env, env_name=env_name, episodes=100, warmup=warmup, batch_size=batch_size, updates_per_step=updates_per_step, summary_writer_name = f"straight_maze{alpha}_lr = {learning_rate}_hs{hidden_size}_a ={alpha}", memory=memory)
+    # for i in range(max_episode_steps):
+    #     action = env.action_space.sample()  # Sample a random action
+    #     observation, reward, terminated, truncated, info = env.step(action)
 
-    # # Close the environment
-    env.close()
+    # print("Final observation:", observation)
+
+    # # # Close the environment
+    # env.close()

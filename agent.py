@@ -5,6 +5,8 @@ from model import *
 from buffer import ReplayBuffer
 from torch.optim import Adam
 import torch.nn.functional as F
+from torch.utils.tensorboard import SummaryWriter
+from datetime import datetime
 
 
 def hard_update(target, source):
@@ -79,7 +81,7 @@ class Agent(object):
         qf_loss.backward()
         self.critic_optim.step()
 
-        pi, log_pi, _ = self.policy.sample(state_batch,pi)
+        pi, log_pi, _ = self.policy.sample(state_batch)
         qf1_pi, qf2_pi = self.critic(state_batch, pi)
         min_qf_pi = torch.min(qf1_pi, qf2_pi)
 
@@ -95,6 +97,69 @@ class Agent(object):
             soft_update(self.critic_target, self.critic, self.tau)
 
         return qf1_loss.item(), qf2_loss.item(), policy_loss.item(), alpha_loss.item(), alpha_tlogs.item()
+
+
+    def train(self, env, env_name, memory: ReplayBuffer, episodes=1000, batch_size=64, updates_per_step=1, summary_writer_name="", max_episodes_steps=100, warmup=20):
+        warmup = 20
+
+        # tensorboard
+        summary_writer_name = f'runs/{datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}_' + summary_writer_name
+        writer = SummaryWriter(summary_writer_name)
+
+        # Training Loop
+        total_steps = 0  
+        updates = 0
+        total_numsteps = 0  # Initialize total_numsteps here
+
+        for i_episodes in range(episodes):
+            episode_reward = 0
+            episode_steps = 0
+            done = False
+            state, _ = env.reset()
+
+            while not done and episode_steps < max_episodes_steps:
+                if warmup > i_episodes:
+                    action = env.action_space.sample()
+                else:
+                    action = self.select_action(state)
+
+                if memory.can_sample(batch_size):
+                    for i in range(updates_per_step):
+                        critic_1_loss, critic_2_loss, policy_loss, ent_loss, alpha = self.update_parameters(memory, batch_size, updates)
+
+                        #Tensorboard
+                        writer.add_scalar("Loss/critic_1", critic_1_loss, updates)
+                        writer.add_scalar("Loss/critic_2", critic_2_loss, updates)
+                        writer.add_scalar("Loss/policy", policy_loss, updates)  
+                        writer.add_scalar("Loss/entropy_loss", ent_loss, updates)
+                        writer.add_scalar("parameters/alpha", alpha, updates)
+
+                next_state, reward, done, _ , _= env.step(action)
+                episode_reward += reward
+                episode_steps += 1
+                total_numsteps += 1
+
+                mask = 1 if episode_steps == max_episodes_steps else float(not done)
+
+                memory.store_transition(state, action, reward, next_state, mask)
+
+                state = next_state
+
+            writer.add_scalar("reward/train", episode_reward, i_episodes)
+            print(f"Episode: {i_episodes}, total numsteps: {total_numsteps}, episode steps: {episode_steps}, reward: {round(episode_reward, 2)}")
+
+            if i_episodes % 10 == 0:
+                self.save_checkpoints()
+                
+
+
+    def save_checkpoints(self):
+        # Create checkpoints directory if it doesn't exist
+        os.makedirs("checkpoints", exist_ok=True)
+        
+        self.policy.save_checkpoint()        # Correct: Actor uses save_checkpoint()
+        self.critic_target.save_checkpoints() # Correct: Critic uses save_checkpoints()
+        self.critic.save_checkpoints()       # Fixed: Changed to save_checkpoints() for Critic
 
     # Train
 
@@ -126,6 +191,7 @@ class Agent(object):
         self.policy.save_checkpoint()
         self.critic_target_checkpoint()
         self.critic.save_checkpoint()
+
 
     def load_checkpoint(self, evaluate=False):
         try:
