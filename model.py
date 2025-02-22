@@ -15,43 +15,48 @@ def weigths_init_(m):
 
 
 class Critic(nn.Module):
-  def __init__(self,num_inputs,num_actions,hidden_dim,checkpoints_dir="checkpoints",name="critic_network"):
-    super(Critic,self).__init__()
+    def __init__(self,num_inputs,num_actions,hidden_dim,checkpoints_dir="checkpoints",name="critic_network"):
+        super(Critic,self).__init__()
 
-    # Critic 1 Architecture
-    self.linear1 = nn.Linear(num_inputs + num_actions, hidden_dim)
-    self.linear2 = nn.Linear(hidden_dim, hidden_dim)
-    self.linear3 = nn.Linear(hidden_dim, 1)
+        # Critic 1 Architecture
+        self.linear1 = nn.Linear(num_inputs + num_actions, hidden_dim)
+        self.linear2 = nn.Linear(hidden_dim, hidden_dim)
+        self.linear3 = nn.Linear(hidden_dim, 1)
 
-    # Critic 1 Architecture
-    self.linear4 = nn.Linear(num_inputs + num_actions, hidden_dim)
-    self.linear5 = nn.Linear(hidden_dim, hidden_dim)
-    self.linear6 = nn.Linear(hidden_dim, 1)
+        # Critic 1 Architecture
+        self.linear4 = nn.Linear(num_inputs + num_actions, hidden_dim)
+        self.linear5 = nn.Linear(hidden_dim, hidden_dim)
+        self.linear6 = nn.Linear(hidden_dim, 1)
 
-    self.name = name
-    self.checkpoints_dir = checkpoints_dir
-    self.checkpoint_file = os.path.join(self.checkpoints_dir,name+"_sac")
+        self.name = name
+        self.checkpoints_dir = checkpoints_dir
+        self.checkpoint_file = os.path.join(self.checkpoints_dir,name+"_sac")
 
-    self.apply(weigths_init_)
+        self.apply(weigths_init_)
 
     def forward(self, state, action):
-      xu = torch.cat([state, action], 1)
+        xu = torch.cat([state, action], 1)
 
-      x1 = F.relu(self.linear1(xu))
-      x1 = F.relu(self.linear2(xu))
-      x1 = self.linear3(x1)
+        x1 = F.relu(self.linear1(xu))
+        x1 = F.relu(self.linear2(x1))
+        x1 = self.linear3(x1)
 
-      x2 = F.relu(self.linear4(xu))
-      x2 = F.relu(self.linear5(xu))
-      x2 = self.linear6(x2)
+        x2 = F.relu(self.linear4(xu))
+        x2 = F.relu(self.linear5(x2))
+        x2 = self.linear6(x2)
 
-      return x1, x2
+        return x1, x2
 
-    def save_checkpoint(self):
-      torch.save(self.state_dict(), self.checkpoint_file)
+    def save_checkpoints(self):
+        """Save model state to checkpoint file"""
+        checkpoint_path = os.path.join(self.checkpoints_dir, self.name + "_sac")
+        torch.save(self.state_dict(), checkpoint_path)
 
     def load_checkpoint(self):
-      self.load_state_dict(torch.load(self.checkpoint_file))
+        """Load model state from checkpoint file"""
+        checkpoint_path = os.path.join(self.checkpoints_dir, self.name + "_sac")
+        if os.path.exists(checkpoint_path):
+            self.load_state_dict(torch.load(checkpoint_path))
 
 
 class Actor(nn.Module):
@@ -111,7 +116,12 @@ class Actor(nn.Module):
         
        
     def save_checkpoint(self):
-      torch.save(self.state_dict(), self.checkpoint_file)
+        """Save model state to checkpoint file"""
+        checkpoint_path = os.path.join(self.checkpoints_dir, self.name + "_sac")
+        torch.save(self.state_dict(), checkpoint_path)
 
     def load_checkpoint(self):
-      self.load_state_dict(torch.load(self.checkpoint_file))
+        """Load model state from checkpoint file"""
+        checkpoint_path = os.path.join(self.checkpoints_dir, self.name + "_sac")
+        if os.path.exists(checkpoint_path):
+            self.load_state_dict(torch.load(checkpoint_path))
