@@ -55,7 +55,9 @@ class Agent(object):
         next_state_batch = torch.FloatTensor(next_state_batch).to(self.device)
         mask_batch = torch.FloatTensor(mask_batch).to(self.device).unsqueeze(1)
 
-        print(mask_batch.shape)
+        # print(mask_batch.shape)
+
+         
 
 
         # Here we will write predictive model 
@@ -95,6 +97,7 @@ class Agent(object):
             soft_update(self.critic_target, self.critic, self.tau)
 
         return qf1_loss.item(), qf2_loss.item(), policy_loss.item(), alpha_loss.item(), alpha_tlogs.item()
+
 
     def train(self, env, env_name, memory: ReplayBuffer, episodes=1000, batch_size=64, updates_per_step=1, summary_writer_name="", max_episodes_steps=100, warmup=20):
         warmup = 20
@@ -157,6 +160,38 @@ class Agent(object):
         self.policy.save_checkpoint()        # Correct: Actor uses save_checkpoint()
         self.critic_target.save_checkpoints() # Correct: Critic uses save_checkpoints()
         self.critic.save_checkpoints()       # Fixed: Changed to save_checkpoints() for Critic
+
+    # Train
+
+
+    # Test
+    def test(self, env, max_episode_steps=500, episodes=10):
+        for i_episode in range(episodes):
+            episodes_reward = 0
+            episodes_steps = 0
+            done=False
+            state,_ = env.reset()
+
+            while not done and episodes_steps<max_episode_steps:
+                action = self.select_action(state)
+                next_state, reward, done, _ = env.step(action)
+                episodes_reward += reward
+                
+                if(reward == 1):
+                    done = True
+
+                episodes_reward += reward
+                state = next_state
+            print(f"Episode: {i_episode} Episode Steps: {episodes_steps} Reward: {episodes_reward}")
+
+    ## May be error
+    def save_checkpoint(self):
+        if not os.path.exists("checkpoints/"):
+            os.makedirs("checkpoints/")
+        self.policy.save_checkpoint()
+        self.critic_target_checkpoint()
+        self.critic.save_checkpoint()
+
 
     def load_checkpoint(self, evaluate=False):
         try:
