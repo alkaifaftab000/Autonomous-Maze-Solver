@@ -2,7 +2,9 @@
 import gymnasium as gym
 import gymnasium_robotics
 import numpy as np
-from gym_robotics_custom import RoboGymObservationWrapper  # Import the wrapper class
+from gym_robotics_custom import RoboGymObservationWrapper 
+ # Import the wrapper class
+from model import *
 
 # Register robotics environments
 gymnasium_robotics.register_robotics_envs()
@@ -35,6 +37,8 @@ if __name__ == '__main__':
     # Reset the environment
     observation, info = env.reset()
 
+    # critic = Critic(1,1,1)
+
     # Run for 100 steps
     for i in range(max_episode_steps):
         action = env.action_space.sample()  # Sample a random action
@@ -42,5 +46,5 @@ if __name__ == '__main__':
 
     print("Final observation:", observation)
 
-    # Close the environment
+    # # Close the environment
     env.close()
