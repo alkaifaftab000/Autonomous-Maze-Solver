@@ -11,7 +11,10 @@ Leveraging the power of reinforcement learning, this project develops an **Auton
    - Trains the system from previous mistakes using reward functions.
 
 2. **Creating `model.py`**:  
-   - The **actor** performs actions while the **critic** evaluates by giving punishments or rewards.  
+   - The **actor** performs actions while the **critic** evaluates by giving punishments or rewards.
+     
+3. **Creating `gymnasium.py`**:  
+   - Develops grid structures for the maze environment.
 
 _Note: No traditional machine learning models were created._
 
