@@ -25,7 +25,9 @@ _Note: No traditional machine learning models were created._
 2. Acquired insights into implementing actor-critic models and reward-driven training systems.  
 
 ---
-
+## UI
+![Description of the GIF](gify.gif)
+---
 ## Plugins and Libraries Used 🛠️
 - `--extra-index-url https://download.pytorch.org/whl/cu118`
 - `torch`
